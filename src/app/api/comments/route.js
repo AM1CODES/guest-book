@@ -1,6 +1,6 @@
 // src/app/api/comments/route.js
-import { connectToDatabase } from "../../../lib/mongodb";
-import Comment from "../../../models/Comment";
+import Comment from "../../../../models/Comment";
+import { connectToDatabase } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
 
 export async function GET() {
