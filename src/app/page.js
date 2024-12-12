@@ -13,55 +13,56 @@ export default function Home() {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch comments on load
-  useEffect(() => {
-    fetchComments();
-    // Set up polling to check for new comments every 10 seconds
-    const interval = setInterval(fetchComments, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   const fetchComments = async () => {
     try {
       const response = await fetch("/api/comments");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      setComments(data);
+      // Ensure we always set an array
+      setComments(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error("Error:", error);
+      setComments([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchComments();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name.trim() && comment.trim()) {
-      try {
-        const response = await fetch("/api/comments", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: name.trim(),
-            comment: comment.trim(),
-            timestamp: new Date().toISOString(),
-          }),
-        });
+    if (!name.trim() || !comment.trim()) return;
 
-        if (response.ok) {
-          // Clear form
-          setName("");
-          setComment("");
-          // Fetch updated comments
-          fetchComments();
-        }
-      } catch (error) {
-        console.error("Error submitting comment:", error);
-        alert("Failed to submit comment. Please try again.");
-      }
+    try {
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          comment: comment.trim(),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to submit");
+
+      // Clear form fields
+      setName("");
+      setComment("");
+      // Fetch updated comments
+      fetchComments();
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to submit comment. Please try again.");
     }
   };
+
+  // Guard against comments not being an array
+  const commentsToRender = Array.isArray(comments) ? comments : [];
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -131,13 +132,13 @@ export default function Home() {
             <div className="col-span-full text-center py-8">
               Loading comments...
             </div>
-          ) : comments.length === 0 ? (
-            <div className="col-span-full text-center py-8">
+          ) : commentsToRender.length === 0 ? (
+            <div className="col-span-full text-center py-8 text-gray-500">
               No comments yet. Be the first to share your thoughts!
             </div>
           ) : (
-            comments.map((comment) => (
-              <Card key={comment.id} className="overflow-hidden">
+            commentsToRender.map((comment) => (
+              <Card key={comment._id || comment.id} className="overflow-hidden">
                 <CardContent className="pt-6">
                   <div className="font-bold mb-2 break-words">
                     {comment.name}
