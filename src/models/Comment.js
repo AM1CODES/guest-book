@@ -4,13 +4,13 @@ import mongoose from "mongoose";
 const CommentSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    maxLength: 25,
+    required: [true, "Name is required"],
+    maxLength: [25, "Name cannot be more than 25 characters"],
   },
   comment: {
     type: String,
-    required: true,
-    maxLength: 5000,
+    required: [true, "Comment is required"],
+    maxLength: [5000, "Comment cannot be more than 5000 characters"],
   },
   timestamp: {
     type: Date,
@@ -18,5 +18,6 @@ const CommentSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.models.Comment ||
-  mongoose.model("Comment", CommentSchema);
+const Comment =
+  mongoose.models.Comment || mongoose.model("Comment", CommentSchema);
+export default Comment;
