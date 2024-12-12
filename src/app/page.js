@@ -13,24 +13,22 @@ export default function Home() {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    fetchComments();
+  }, []);
+
   const fetchComments = async () => {
     try {
       const response = await fetch("/api/comments");
       if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      // Ensure we always set an array
-      setComments(Array.isArray(data) ? data : []);
+      setComments(data);
     } catch (error) {
       console.error("Error:", error);
-      setComments([]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchComments();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,19 +48,14 @@ export default function Home() {
 
       if (!response.ok) throw new Error("Failed to submit");
 
-      // Clear form fields
       setName("");
       setComment("");
-      // Fetch updated comments
       fetchComments();
     } catch (error) {
       console.error("Error:", error);
       alert("Failed to submit comment. Please try again.");
     }
   };
-
-  // Guard against comments not being an array
-  const commentsToRender = Array.isArray(comments) ? comments : [];
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -132,13 +125,13 @@ export default function Home() {
             <div className="col-span-full text-center py-8">
               Loading comments...
             </div>
-          ) : commentsToRender.length === 0 ? (
+          ) : comments.length === 0 ? (
             <div className="col-span-full text-center py-8 text-gray-500">
               No comments yet. Be the first to share your thoughts!
             </div>
           ) : (
-            commentsToRender.map((comment) => (
-              <Card key={comment._id || comment.id} className="overflow-hidden">
+            comments.map((comment) => (
+              <Card key={comment._id} className="overflow-hidden">
                 <CardContent className="pt-6">
                   <div className="font-bold mb-2 break-words">
                     {comment.name}

@@ -1,12 +1,15 @@
 // src/app/api/comments/route.js
-import { kv } from "@vercel/kv";
+import { connectToDatabase } from "@/lib/mongodb";
+import Comment from "@/models/Comment";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const comments = await kv.lrange("comments", 0, -1);
-    return Response.json(comments.reverse());
+    await connectToDatabase();
+    const comments = await Comment.find().sort({ timestamp: -1 });
+    return NextResponse.json(comments);
   } catch (error) {
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to fetch comments" },
       { status: 500 },
     );
@@ -15,13 +18,14 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const comment = await request.json();
-    comment.id = Date.now().toString();
-
-    await kv.lpush("comments", comment);
-
-    return Response.json({ message: "Comment added successfully" });
+    await connectToDatabase();
+    const data = await request.json();
+    const comment = await Comment.create(data);
+    return NextResponse.json(comment);
   } catch (error) {
-    return Response.json({ error: "Failed to add comment" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to add comment" },
+      { status: 500 },
+    );
   }
 }
