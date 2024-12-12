@@ -1,6 +1,6 @@
 // src/app/api/comments/route.js
-import { connectToDatabase } from "@/lib/mongodb";
-import Comment from "@/models/Comment";
+import { connectToDatabase } from "../../../lib/mongodb";
+import Comment from "../../../models/Comment";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -22,7 +22,6 @@ export async function POST(request) {
     await connectToDatabase();
     const body = await request.json();
 
-    // Validate input
     if (!body.name || !body.comment) {
       return NextResponse.json(
         { error: "Name and comment are required" },
@@ -30,16 +29,13 @@ export async function POST(request) {
       );
     }
 
-    // Create new comment
     const comment = new Comment({
       name: body.name,
       comment: body.comment,
       timestamp: new Date(),
     });
 
-    // Save to database
     const savedComment = await comment.save();
-
     return NextResponse.json(savedComment);
   } catch (error) {
     console.error("POST Error:", error);
